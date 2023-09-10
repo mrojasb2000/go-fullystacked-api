@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
 	_ "github.com/lib/pq"
 	"github.com/mrojasb2000/go-fullystacked-api/gen"
 )
@@ -45,6 +46,31 @@ func main() {
 
 	if err != nil {
 		log.Fatalln("Error creating user :", err)
+	}
+
+	eid, err := st.CreateExercise(ctx, "Basic Exercise")
+
+	if err != nil {
+		log.Fatalln("Error creating exercise :", err)
+	}
+
+	set, err := st.CreateSet(ctx, gen.CreateSetParams{
+		ExerciseID: eid,
+		Weight:     100,
+	})
+
+	if err != nil {
+		log.Fatalln("Error updating exercise :", err)
+	}
+
+	set, err = st.UpdateSet(ctx, gen.UpdateSetParams{
+		ExerciseID: eid,
+		SetID:      set.SetID,
+		Weight:     2000,
+	})
+
+	if err != nil {
+		log.Fatalln("Error updating set :", err)
 	}
 
 	log.Println("Done!")
