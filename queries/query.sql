@@ -34,6 +34,13 @@ SELECT *
 FROM gowebapp.users
 WHERE user_id = $1;
 
+-- name: GetUserByName :one
+-- get users of a particular user_name
+SELECT *
+FROM gowebapp.users
+WHERE user_name = $1;
+
+
 -- name: GetUserWorkout :many
 -- get a particular user information and workouts
 SELECT u.user_id, w.workout_id, w.start_date, w.set_id

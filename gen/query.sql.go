@@ -206,6 +206,28 @@ func (q *Queries) GetUser(ctx context.Context, userID int64) (GowebappUser, erro
 	return i, err
 }
 
+const getUserByName = `-- name: GetUserByName :one
+SELECT user_id, user_name, pass_word_hash, name, config, created_at, is_enabled
+FROM gowebapp.users
+WHERE user_name = $1
+`
+
+// get users of a particular user_name
+func (q *Queries) GetUserByName(ctx context.Context, userName string) (GowebappUser, error) {
+	row := q.db.QueryRowContext(ctx, getUserByName, userName)
+	var i GowebappUser
+	err := row.Scan(
+		&i.UserID,
+		&i.UserName,
+		&i.PassWordHash,
+		&i.Name,
+		&i.Config,
+		&i.CreatedAt,
+		&i.IsEnabled,
+	)
+	return i, err
+}
+
 const getUserImage = `-- name: GetUserImage :one
 SELECT u.name, u.user_id, i.image_data
 FROM gowebapp.users u,
