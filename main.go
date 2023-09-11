@@ -1,84 +1,36 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"log"
-
-	_ "github.com/lib/pq"
-	"github.com/mrojasb2000/go-fullystacked-api/gen"
+	"net/http"
+	"time"
 )
 
-const DB_DRIVERNAME = "postgres"
+func handlerGetHelloWorld(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "Hello World\n")
+	log.Println(req.Method)
+	log.Println(req.URL)
+	log.Println(req.Header)
+	log.Println(req.Body)
+}
 
 func main() {
-	dbURI := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		GetAsString("DB_USER", "postgres"),
-		GetAsString("DB_PASSWORD", "postgres"),
-		GetAsString("DB_HOST", "localhost"),
-		GetAsInt("DB_PORT", 5432),
-		GetAsString("DB_NAME", "db"),
-	)
+	port := "9002"
+	router := http.NewServeMux()
 
-	// Open the database
-	db, err := sql.Open(DB_DRIVERNAME, dbURI)
+	srv := http.Server{
+		Addr:           ":" + port,
+		Handler:        router,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   120 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
 
+	router.HandleFunc("/", handlerGetHelloWorld)
+
+	err := srv.ListenAndServe()
 	if err != nil {
-		panic(err)
-	}
-
-	// Connectivity check
-	if err := db.Ping(); err != nil {
-		log.Fatalln("Error from database ping: ", err)
-	}
-
-	// Create the store
-	st := gen.New(db)
-
-	ctx := context.Background()
-
-	_, err = st.CreateUsers(ctx, gen.CreateUsersParams{
-		UserName:     "jhondoe",
-		PassWordHash: "hash",
-		Name:         "Jhon Doe",
-	})
-
-	if err != nil {
-		log.Fatalln("Error creating user :", err)
-	}
-
-	eid, err := st.CreateExercise(ctx, "Basic Exercise")
-
-	if err != nil {
-		log.Fatalln("Error creating exercise :", err)
-	}
-
-	set, err := st.CreateSet(ctx, gen.CreateSetParams{
-		ExerciseID: eid,
-		Weight:     100,
-	})
-
-	if err != nil {
-		log.Fatalln("Error updating exercise :", err)
-	}
-
-	set, err = st.UpdateSet(ctx, gen.UpdateSetParams{
-		ExerciseID: eid,
-		SetID:      set.SetID,
-		Weight:     2000,
-	})
-
-	if err != nil {
-		log.Fatalln("Error updating set :", err)
-	}
-
-	log.Println("Done!")
-
-	users, _ := st.ListUsers(ctx)
-
-	for _, usr := range users {
-		data := fmt.Sprintf("Name: %s, ID: %d", usr.Name, usr.UserID)
-		fmt.Println(data)
+		log.Fatalln("Couldn't Listen and Server: ", err)
 	}
 }
