@@ -44,3 +44,6 @@ generate:
 	@echo "Generating Go models with sqlc"
 	sqlc generate -f $(SQLC_YAML)
 
+redis:
+	docker stop local-redis || true && docker rm local-redis || true
+	docker run -d -v $(PWD)/redisdata:/data --name local-redis -p 6379:6379 redis/redis-stack-server:latest
